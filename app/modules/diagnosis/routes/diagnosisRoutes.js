@@ -1,0 +1,1 @@
+// diagnosisRoutes.js placeholder content

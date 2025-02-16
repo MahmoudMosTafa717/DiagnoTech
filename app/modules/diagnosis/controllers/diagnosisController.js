@@ -1,0 +1,1 @@
+// diagnosisController.js placeholder content

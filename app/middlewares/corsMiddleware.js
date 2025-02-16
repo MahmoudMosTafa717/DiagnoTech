@@ -1,0 +1,1 @@
+// corsMiddleware.js placeholder content
