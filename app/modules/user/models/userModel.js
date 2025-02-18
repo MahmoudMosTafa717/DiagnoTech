@@ -27,9 +27,9 @@ const userSchema = new Schema({
   token: {
     type: String,
   },
-  avatar: {
+  profilePic: {
     type: String,
-    default: ".../uploads/defaultProfilePic.jpg",
+    default: "../../../../uploads/defaultProfilePic.jpg",
   },
 });
 

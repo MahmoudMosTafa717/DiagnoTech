@@ -4,7 +4,8 @@ const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
 const userController = require("../controllers/userController");
 const router = express.Router();
-
+const authMiddleware = require("../../../middlewares/authMiddleware");
+const upload = require("../../../middlewares/multer");
 router.get("/", userController.getAllusers);
 
 // Register a user
@@ -47,6 +48,36 @@ router.post("/login", async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: "Server error" });
   }
+});
+
+router.put(
+  "/profile",
+  authMiddleware,
+  upload.single("profilePic"),
+  async (req, res) => {
+    try {
+      const userId = req.user.id;
+      const { fullName, gender, age } = req.body;
+      const profilePic = req.file ? `/uploads/${req.file.filename}` : undefined;
+
+      const updatedData = { fullName, gender, age };
+      if (profilePic) updatedData.profilePic = profilePic;
+
+      const user = await User.findByIdAndUpdate(userId, updatedData, {
+        new: true,
+      });
+
+      if (!user) return res.status(404).json({ message: "User not found" });
+
+      res.status(200).json({ message: "Profile updated successfully", user });
+    } catch (error) {
+      res.status(500).json({ message: "Server error", error: error.message });
+    }
+  }
+);
+
+router.post("/logout", (req, res) => {
+  res.status(200).json({ message: "Logged out successfully" });
 });
 
 module.exports = router;
