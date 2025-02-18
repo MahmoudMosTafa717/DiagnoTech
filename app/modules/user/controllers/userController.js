@@ -1,4 +1,5 @@
 const User = require("../models/userModel");
+
 getAllusers = async (req, res) => {
   console.log(req.headers);
   try {
