@@ -11,8 +11,10 @@ app.use(express.json());
 app.use(cors());
 
 const userRouter = require("./app/modules/user/routes/userRoutes");
+const profileRoutes = require("./app/modules/user/routes/profileRoutes");
 
 app.use("/api/users", userRouter);
+app.use("/api/profile", profileRoutes);
 app.use("/uploads", express.static("uploads"));
 
 app.all("*", (req, res) => {

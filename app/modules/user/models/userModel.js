@@ -27,7 +27,7 @@ const userSchema = new Schema({
   token: {
     type: String,
   },
-  profilePic: {
+  profilePicture: {
     type: String,
     default: "../../../../uploads/defaultProfilePic.jpg",
   },
