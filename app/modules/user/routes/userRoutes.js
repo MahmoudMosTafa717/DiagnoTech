@@ -5,10 +5,11 @@ const nodemailer = require("nodemailer");
 const User = require("../models/userModel");
 const userController = require("../controllers/userController");
 const router = express.Router();
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
-});
+const { sendPasswordResetCode } = require("../services/emailService");
+// const transporter = nodemailer.createTransport({
+//   service: "gmail",
+//   auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },
+// });
 
 //Get All users
 router.get("/", userController.getAllusers);
@@ -74,51 +75,105 @@ router.post("/login", async (req, res) => {
 router.post("/forgotPassword", async (req, res) => {
   try {
     const { email } = req.body;
-    if (!email)
+    if (!email) {
       return res
         .status(400)
         .json({ status: "fail", data: { error: "Email is required" } });
+    }
 
     const user = await User.findOne({ email });
-    if (!user)
+    if (!user) {
       return res
         .status(400)
         .json({ status: "fail", data: { error: "Email not found" } });
+    }
 
-    const resetToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET, {
-      expiresIn: "15m",
-    });
-    const resetLink = `http://localhost:3000/resetPassword/${resetToken}`;
+    const hashedCode = await sendPasswordResetCode(email);
 
-    await transporter.sendMail({
-      from: process.env.EMAIL_USER,
-      to: user.email,
-      subject: "Password Reset",
-      html: `<p>Click <a href="${resetLink}">here</a> to reset your password.</p>`,
-    });
+    user.resetPasswordCode = hashedCode;
+    user.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
+    await user.save();
 
     res.json({
       status: "success",
-      data: { message: "Password reset link sent" },
+      data: {
+        message: `Password reset code sent to ${user.email}`,
+      },
     });
   } catch (err) {
-    res.status(500).json({ status: "error", message: err.message });
+    console.error(err);
+    res.status(500).json({ status: "error", message: "Failed to send email" });
   }
 });
 
 // Reset Password
-router.post("/resetPassword", async (req, res) => {
+router.post("/verifyResetCode", async (req, res) => {
   try {
-    const { token, newPassword } = req.body;
-    if (!token || !newPassword)
-      return res.status(400).json({
-        status: "fail",
-        data: { error: "Token and new password are required" },
-      });
+    const { code } = req.body;
+    if (!code) {
+      return res
+        .status(400)
+        .json({ status: "fail", data: { error: "Code is required" } });
+    }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findOne({ resetPasswordCode: { $exists: true } });
+    if (
+      !user ||
+      !user.resetPasswordExpires ||
+      Date.now() > user.resetPasswordExpires
+    ) {
+      return res
+        .status(400)
+        .json({ status: "fail", data: { error: "Invalid or expired code" } });
+    }
+
+    const isMatch = await bcrypt.compare(code, user.resetPasswordCode);
+    if (!isMatch) {
+      return res
+        .status(400)
+        .json({ status: "fail", data: { error: "Invalid code" } });
+    }
+
+    user.resetCodeVerified = true;
+    await user.save();
+
+    const resetToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "15m",
+    });
+
+    res.json({
+      status: "success",
+      data: { resetToken },
+    });
+  } catch (err) {
+    res.status(500).json({ status: "error", message: "Failed to verify code" });
+  }
+});
+
+router.put("/resetPassword", async (req, res) => {
+  try {
+    const { newPassword } = req.body;
+    if (!newPassword) {
+      return res
+        .status(400)
+        .json({ status: "fail", data: { error: "New password is required" } });
+    }
+
+    const user = await User.findOne({ resetCodeVerified: true });
+    if (!user) {
+      return res
+        .status(400)
+        .json({ status: "fail", data: { error: "Reset code not verified" } });
+    }
+
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    await User.findByIdAndUpdate(decoded.id, { password: hashedPassword });
+    user.password = hashedPassword;
+
+    user.resetPasswordCode = undefined;
+    user.resetPasswordExpires = undefined;
+    user.resetCodeVerified = false;
+
+    await user.save();
 
     res.json({
       status: "success",
@@ -126,8 +181,8 @@ router.post("/resetPassword", async (req, res) => {
     });
   } catch (err) {
     res
-      .status(400)
-      .json({ status: "error", message: "Invalid or expired token" });
+      .status(500)
+      .json({ status: "error", message: "Failed to reset password" });
   }
 });
 

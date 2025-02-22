@@ -24,6 +24,9 @@ const userSchema = new Schema({
     type: String,
     required: true,
   },
+  resetPasswordCode: { type: String },
+  resetPasswordExpires: { type: Date },
+  resetCodeVerified: { type: Boolean, default: false },
   token: {
     type: String,
   },
