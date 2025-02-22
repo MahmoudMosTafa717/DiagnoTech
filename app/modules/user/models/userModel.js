@@ -32,8 +32,7 @@ const userSchema = new Schema({
   },
   profilePicture: {
     type: String,
-    default: "../../../../uploads/defaultProfilePic.jpg",
+    default: "../../../../uploads/defaultProfilePic",
   },
 });
-
 module.exports = mongoose.model("User", userSchema);

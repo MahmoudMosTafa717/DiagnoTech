@@ -3,9 +3,8 @@ const bcrypt = require("bcrypt");
 const multer = require("multer");
 const auth = require("../../../middlewares/authMiddleware");
 const User = require("../models/userModel");
-
+const upload = require("../../../middlewares/multer");
 const router = express.Router();
-const upload = multer({ dest: "uploads/" });
 
 // Get User Profile
 router.get("/user", auth, async (req, res) => {
@@ -49,17 +48,33 @@ router.put("/changePassword", auth, async (req, res) => {
 
 // Upload Profile Picture
 router.post(
-  "/uploadPicture",
+  "/uploadProfilePicture",
   auth,
   upload.single("profilePicture"),
   async (req, res) => {
     try {
-      await User.findByIdAndUpdate(req.user.id, {
-        profilePicture: req.file.path,
-      });
+      if (!req.file) {
+        return res
+          .status(400)
+          .json({ status: "fail", data: { error: "No file uploaded" } });
+      }
+
+      const user = await User.findById(req.user.id);
+      if (!user) {
+        return res
+          .status(404)
+          .json({ status: "fail", data: { error: "User not found" } });
+      }
+
+      user.profilePicture = `/uploads/${req.file.filename}`;
+      await user.save();
+
       res.json({
         status: "success",
-        data: { message: "Profile picture updated" },
+        data: {
+          message: "Profile picture uploaded successfully",
+          profilePicture: user.profilePicture,
+        },
       });
     } catch (err) {
       res.status(500).json({ status: "error", message: err.message });

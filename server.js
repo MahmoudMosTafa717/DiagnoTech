@@ -15,7 +15,7 @@ const profileRoutes = require("./app/modules/user/routes/profileRoutes");
 
 app.use("/api/users", userRouter);
 app.use("/api/profile", profileRoutes);
-app.use("/uploads", express.static("uploads"));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.all("*", (req, res) => {
   return res
