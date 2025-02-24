@@ -6,6 +6,8 @@ const User = require("../models/userModel");
 const userController = require("../controllers/userController");
 const router = express.Router();
 const { sendPasswordResetCode } = require("../services/emailService");
+const auth = require("../../../middlewares/authMiddleware");
+
 // const transporter = nodemailer.createTransport({
 //   service: "gmail",
 //   auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_PASS },

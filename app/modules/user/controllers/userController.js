@@ -1,7 +1,7 @@
 const User = require("../models/userModel");
 
 getAllusers = async (req, res) => {
-  console.log(req.headers);
+  // console.log(req.headers);
   try {
     const allUsers = await User.find({}, { __v: 0 });
     res.status(200).json({ data: allUsers });
