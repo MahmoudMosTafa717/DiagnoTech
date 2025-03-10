@@ -17,6 +17,11 @@ app.use("/api/users", userRouter);
 app.use("/api/profile", profileRoutes);
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+const swaggerUi = require("swagger-ui-express");
+const swaggerDocument = require("./swagger-output.json");
+
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+
 app.all("*", (req, res) => {
   return res
     .status(404)
