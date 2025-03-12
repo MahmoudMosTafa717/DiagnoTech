@@ -12,9 +12,12 @@ app.use(cors());
 
 const userRouter = require("./app/modules/user/routes/userRoutes");
 const profileRoutes = require("./app/modules/user/routes/profileRoutes");
+const diagnosisRoutes = require("./app/modules/diagnosis/routes/diagnosisRoutes");
 
 app.use("/api/users", userRouter);
 app.use("/api/profile", profileRoutes);
+app.use("/api/diagnosis", diagnosisRoutes);
+
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 const swaggerUi = require("swagger-ui-express");
