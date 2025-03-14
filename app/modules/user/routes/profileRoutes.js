@@ -82,6 +82,26 @@ router.post(
   }
 );
 
+router.get("/profilePicture", auth, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+
+    if (!user || !user.profilePicture) {
+      return res.status(404).json({
+        status: "fail",
+        data: { error: "Profile picture not found" },
+      });
+    }
+
+    res.json({
+      status: "success",
+      data: { profilePicture: user.profilePicture },
+    });
+  } catch (err) {
+    res.status(500).json({ status: "error", message: err.message });
+  }
+});
+
 // Delete Account
 router.delete("/deleteAccount", auth, async (req, res) => {
   try {
