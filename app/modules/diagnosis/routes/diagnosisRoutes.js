@@ -1,8 +1,10 @@
 const express = require("express");
 const router = express.Router();
 const axios = require("axios");
-const Diagnosis = require("../models/diagnosisModel");
 const User = require("../../user/models/userModel");
+const Diagnosis = require("../models/diagnosisModel");
+const Doctor = require("../models/doctorModel");
+
 const auth = require("../../../middlewares/authMiddleware");
 
 // Predict Disease & Save Diagnosis
@@ -49,6 +51,60 @@ router.post("/predict", auth, async (req, res) => {
     res.status(201).json({
       message: "Diagnosis saved successfully",
       diagnosis: newDiagnosis,
+    });
+  } catch (error) {
+    console.error("Error calling Flask API:", error.message);
+    res.status(500).json({ error: "Prediction failed" });
+  }
+});
+
+router.post("/prediction", auth, async (req, res) => {
+  const { symptoms } = req.body;
+
+  if (!symptoms || symptoms.length < 3) {
+    return res.status(400).json({ error: "At least 3 symptoms are required" });
+  }
+
+  try {
+    // Call Flask API for prediction
+    const response = await axios.post("http://127.0.0.1:4000/predict", {
+      symptoms,
+    });
+    const topDiseases = response.data.top5_diseases; // Extract predictions
+
+    if (!topDiseases || topDiseases.length === 0) {
+      return res
+        .status(500)
+        .json({ error: "No predictions received from model" });
+    }
+
+    // Take only the first disease from the response
+    const bestMatch = topDiseases[0];
+
+    // 🔹 Find doctors who treat this disease
+    const matchingDoctors = await Doctor.find({ Disease: bestMatch.Disease });
+
+    // Store the diagnosis in MongoDB
+    const newDiagnosis = await Diagnosis.create({
+      userId: req.user.id,
+      symptoms,
+      diagnosisResult: {
+        disease: bestMatch.Disease,
+        probability: bestMatch["Probability (%)"],
+        description: bestMatch.Description,
+        precautions: bestMatch.Precautions,
+      },
+    });
+
+    // Append diagnosis to user's medical history
+    await User.findByIdAndUpdate(req.user.id, {
+      $push: { medicalHistory: newDiagnosis._id },
+    });
+
+    res.status(201).json({
+      message: "Diagnosis saved successfully",
+      diagnosis: newDiagnosis,
+      doctors: matchingDoctors, // 🔹 Include matching doctors in the response
     });
   } catch (error) {
     console.error("Error calling Flask API:", error.message);

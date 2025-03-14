@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Password Reset</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        text-align: center;
+        padding: 20px;
+      }
+      .container {
+        background: #fff;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        max-width: 400px;
+        margin: auto;
+      }
+      h2 {
+        color: #333;
+      }
+      .code {
+        font-size: 24px;
+        font-weight: bold;
+        color: #d9534f;
+        margin: 15px 0;
+      }
+      .btn {
+        display: inline-block;
+        padding: 10px 20px;
+        margin-top: 20px;
+        background: #007bff;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 5px;
+      }
+      .btn:hover {
+        background: #0056b3;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h2>Password Reset Request</h2>
+      <p>You requested a password reset. Use the following code to proceed:</p>
+      <div class="code">{{RESET_CODE}}</div>
+      <p>Or click the button below to reset your password:</p>
+      <a href="https://example.com/reset-password" class="btn"
+        >Reset Password</a
+      >
+      <p>If you didn't request this, you can ignore this email.</p>
+    </div>
+  </body>
+</html>

@@ -13,10 +13,14 @@ app.use(cors());
 const userRouter = require("./app/modules/user/routes/userRoutes");
 const profileRoutes = require("./app/modules/user/routes/profileRoutes");
 const diagnosisRoutes = require("./app/modules/diagnosis/routes/diagnosisRoutes");
+const doctorRoutes = require("./app/modules/diagnosis/routes/doctorsRoutes");
+const symptomsRoutes = require("./app/modules/diagnosis/routes/symptomsRoutes");
 
 app.use("/api/users", userRouter);
 app.use("/api/profile", profileRoutes);
 app.use("/api/diagnosis", diagnosisRoutes);
+app.use("/api/doctors", doctorRoutes);
+app.use("/api/symptoms", symptomsRoutes);
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
