@@ -4,8 +4,10 @@ const cors = require("cors");
 require("dotenv").config();
 const status = require("./app/modules/utils/httpStatus");
 // console.log(process.env.PORT);
+// console.log(__dirname);
 
 const path = require("path");
+// app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // const bodyParser = require("body-parser");
 app.use(express.json());
 app.use(cors());

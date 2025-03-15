@@ -16,24 +16,42 @@ const auth = require("../../../middlewares/authMiddleware");
 //Get All users
 router.get("/", userController.getAllusers);
 
-// Register
 router.post("/register", async (req, res) => {
   try {
     const { fullName, email, gender, age, password } = req.body;
+
     if (!fullName || !email || !gender || !age || !password) {
-      return res
-        .status(400)
-        .json({ status: "fail", data: { error: "All fields are required" } });
+      return res.status(400).json({
+        status: "fail",
+        data: { error: "All fields are required" },
+      });
     }
 
     let user = await User.findOne({ email });
-    if (user)
-      return res
-        .status(400)
-        .json({ status: "fail", data: { error: "User already exists" } });
+    if (user) {
+      return res.status(400).json({
+        status: "fail",
+        data: { error: "User already exists" },
+      });
+    }
 
+    // Check password before hashing
+    const passwordRegex =
+      /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&]).{8,}$/;
+    if (!passwordRegex.test(password)) {
+      return res.status(400).json({
+        status: "fail",
+        data: {
+          error:
+            "Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.",
+        },
+      });
+    }
+
+    // Hash password AFTER validation
     const hashedPassword = await bcrypt.hash(password, 10);
     user = new User({ fullName, email, gender, age, password: hashedPassword });
+
     await user.save();
 
     res.status(201).json({
@@ -41,7 +59,17 @@ router.post("/register", async (req, res) => {
       data: { message: "User registered successfully" },
     });
   } catch (err) {
-    res.status(500).json({ status: "error", message: err.message });
+    if (err.name === "ValidationError") {
+      return res.status(400).json({
+        status: "fail",
+        data: { error: err.message },
+      });
+    }
+
+    res.status(500).json({
+      status: "error",
+      message: err.message,
+    });
   }
 });
 
@@ -155,22 +183,41 @@ router.post("/verifyResetCode", async (req, res) => {
 router.put("/resetPassword", async (req, res) => {
   try {
     const { newPassword } = req.body;
+
     if (!newPassword) {
-      return res
-        .status(400)
-        .json({ status: "fail", data: { error: "New password is required" } });
+      return res.status(400).json({
+        status: "fail",
+        data: { error: "New password is required" },
+      });
     }
 
+    // Validate new password
+    const passwordRegex =
+      /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&]).{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      return res.status(400).json({
+        status: "fail",
+        data: {
+          error:
+            "Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.",
+        },
+      });
+    }
+
+    //  Find user who verified reset code
     const user = await User.findOne({ resetCodeVerified: true });
     if (!user) {
-      return res
-        .status(400)
-        .json({ status: "fail", data: { error: "Reset code not verified" } });
+      return res.status(400).json({
+        status: "fail",
+        data: { error: "Reset code not verified" },
+      });
     }
 
+    //  Hash the new password before saving
     const hashedPassword = await bcrypt.hash(newPassword, 10);
     user.password = hashedPassword;
 
+    //  Clear reset password fields
     user.resetPasswordCode = undefined;
     user.resetPasswordExpires = undefined;
     user.resetCodeVerified = false;
@@ -182,9 +229,10 @@ router.put("/resetPassword", async (req, res) => {
       data: { message: "Password updated successfully" },
     });
   } catch (err) {
-    res
-      .status(500)
-      .json({ status: "error", message: "Failed to reset password" });
+    res.status(500).json({
+      status: "error",
+      message: "Failed to reset password",
+    });
   }
 });
 

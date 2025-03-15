@@ -31,16 +31,51 @@ router.put("/update", auth, async (req, res) => {
 router.put("/changePassword", auth, async (req, res) => {
   try {
     const { oldPassword, newPassword } = req.body;
-    const user = await User.findById(req.user.id);
-    if (!(await bcrypt.compare(oldPassword, user.password))) {
-      return res
-        .status(400)
-        .json({ status: "fail", data: { error: "Incorrect password" } });
+
+    // Ensure both old and new passwords are provided
+    if (!oldPassword || !newPassword) {
+      return res.status(400).json({
+        status: "fail",
+        data: { error: "Both old and new passwords are required" },
+      });
     }
 
+    // Find user and check old password
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({
+        status: "fail",
+        data: { error: "User not found" },
+      });
+    }
+
+    if (!(await bcrypt.compare(oldPassword, user.password))) {
+      return res.status(400).json({
+        status: "fail",
+        data: { error: "Incorrect password" },
+      });
+    }
+
+    // Validate new password
+    const passwordRegex =
+      /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&]).{8,}$/;
+    if (!passwordRegex.test(newPassword)) {
+      return res.status(400).json({
+        status: "fail",
+        data: {
+          error:
+            "Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.",
+        },
+      });
+    }
+    // Hash and update new password
     user.password = await bcrypt.hash(newPassword, 10);
     await user.save();
-    res.json({ status: "success", data: { message: "Password updated" } });
+
+    res.json({
+      status: "success",
+      data: { message: "Password updated successfully" },
+    });
   } catch (err) {
     res.status(500).json({ status: "error", message: err.message });
   }
@@ -82,31 +117,43 @@ router.post(
   }
 );
 
-router.get("/profilePicture", auth, async (req, res) => {
+// Delete password
+router.delete("/deleteAccount", auth, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id);
+    const { password } = req.body;
 
-    if (!user || !user.profilePicture) {
-      return res.status(404).json({
+    if (!password) {
+      return res.status(400).json({
         status: "fail",
-        data: { error: "Profile picture not found" },
+        data: { error: "Password is required to delete account" },
       });
     }
 
+    // Find user
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({
+        status: "fail",
+        data: { error: "User not found" },
+      });
+    }
+
+    // Check if the password is correct
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).json({
+        status: "fail",
+        data: { error: "Incorrect password" },
+      });
+    }
+
+    // Delete user account
+    await User.findByIdAndDelete(req.user.id);
+
     res.json({
       status: "success",
-      data: { profilePicture: user.profilePicture },
+      data: { message: "Account deleted successfully" },
     });
-  } catch (err) {
-    res.status(500).json({ status: "error", message: err.message });
-  }
-});
-
-// Delete Account
-router.delete("/deleteAccount", auth, async (req, res) => {
-  try {
-    await User.findByIdAndDelete(req.user.id);
-    res.json({ status: "success", data: { message: "Account deleted" } });
   } catch (err) {
     res.status(500).json({ status: "error", message: err.message });
   }
