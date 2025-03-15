@@ -1,5 +1,6 @@
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcryptjs");
+const generateResetEmail = require("../../utils/emailTemplate"); // Import HTML email template
 require("dotenv").config();
 
 const transporter = nodemailer.createTransport({
@@ -17,14 +18,16 @@ const transporter = nodemailer.createTransport({
 const sendPasswordResetCode = async (email) => {
   try {
     const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
-
     const hashedCode = await bcrypt.hash(resetCode, 10);
 
+    // Use the HTML email template
+    const emailContent = generateResetEmail(resetCode);
+
     await transporter.sendMail({
-      from: process.env.GMAIL_USER,
+      from: `"YourApp Support" <${process.env.GMAIL_USER}>`,
       to: email,
-      subject: "Password Reset Code",
-      text: `Your password reset code is: ${resetCode}`,
+      subject: "Reset Your Password",
+      html: emailContent, // Use HTML instead of plain text
     });
 
     console.log(`OTP sent to ${email}: ${resetCode}`);

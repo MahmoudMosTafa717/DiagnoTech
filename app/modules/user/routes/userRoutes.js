@@ -106,22 +106,24 @@ router.post("/forgotPassword", async (req, res) => {
   try {
     const { email } = req.body;
     if (!email) {
-      return res
-        .status(400)
-        .json({ status: "fail", data: { error: "Email is required" } });
+      return res.status(400).json({
+        status: "fail",
+        data: { error: "Email is required" },
+      });
     }
 
     const user = await User.findOne({ email });
     if (!user) {
-      return res
-        .status(400)
-        .json({ status: "fail", data: { error: "Email not found" } });
+      return res.status(400).json({
+        status: "fail",
+        data: { error: "Email not found" },
+      });
     }
 
     const hashedCode = await sendPasswordResetCode(email);
 
     user.resetPasswordCode = hashedCode;
-    user.resetPasswordExpires = Date.now() + 15 * 60 * 1000;
+    user.resetPasswordExpires = Date.now() + 15 * 60 * 1000; // Expires in 15 mins
     await user.save();
 
     res.json({
