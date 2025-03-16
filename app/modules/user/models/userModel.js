@@ -42,7 +42,7 @@ const userSchema = new Schema({
   },
   profilePicture: {
     type: String,
-    default: "/uploads/defaultProfilePic",
+    default: "/uploads/defaultProfilePic.png",
   },
 });
 
