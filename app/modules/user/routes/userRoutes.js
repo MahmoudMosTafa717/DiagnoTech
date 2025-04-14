@@ -138,47 +138,59 @@ router.post("/forgotPassword", async (req, res) => {
   }
 });
 
-// Reset Password
+// Verify Reset Code
 router.post("/verifyResetCode", async (req, res) => {
   try {
     const { code } = req.body;
+
     if (!code) {
-      return res
-        .status(400)
-        .json({ status: "fail", data: { error: "Code is required" } });
+      return res.status(400).json({
+        status: "fail",
+        data: { error: "Code is required" },
+      });
     }
 
-    const user = await User.findOne({ resetPasswordCode: { $exists: true } });
-    if (
-      !user ||
-      !user.resetPasswordExpires ||
-      Date.now() > user.resetPasswordExpires
-    ) {
-      return res
-        .status(400)
-        .json({ status: "fail", data: { error: "Invalid or expired code" } });
+    const users = await User.find({ resetPasswordCode: { $exists: true } });
+
+    let matchedUser = null;
+
+    for (const user of users) {
+      const isMatch = await bcrypt.compare(code, user.resetPasswordCode);
+      const notExpired =
+        user.resetPasswordExpires && Date.now() <= user.resetPasswordExpires;
+
+      if (isMatch && notExpired) {
+        matchedUser = user;
+        break;
+      }
     }
 
-    const isMatch = await bcrypt.compare(code, user.resetPasswordCode);
-    if (!isMatch) {
-      return res
-        .status(400)
-        .json({ status: "fail", data: { error: "Invalid code" } });
+    if (!matchedUser) {
+      return res.status(400).json({
+        status: "fail",
+        data: { error: "Invalid or expired code" },
+      });
     }
 
-    user.resetCodeVerified = true;
-    await user.save();
+    matchedUser.resetCodeVerified = true;
+    await matchedUser.save();
 
-    const resetToken = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "15m",
-    });
+    const resetToken = jwt.sign(
+      { userId: matchedUser._id },
+      process.env.JWT_SECRET,
+      { expiresIn: "15m" }
+    );
 
-    res.json({
+    res.status(200).json({
       status: "success",
       data: { resetToken },
     });
   } catch (err) {
-    res.status(500).json({ status: "error", message: "Failed to verify code" });
+    console.error("Error verifying code:", err);
+    res.status(500).json({
+      status: "error",
+      message: "Failed to verify code",
+    });
   }
 });
 
