@@ -15,11 +15,15 @@ const userSchema = new Schema({
   },
   gender: {
     type: String,
-    required: true,
+    required: function () {
+      return this.role == "user";
+    },
   },
   age: {
     type: Number,
-    required: true,
+    required: function () {
+      return this.role == "user";
+    },
   },
   password: {
     type: String,
@@ -33,6 +37,11 @@ const userSchema = new Schema({
       message:
         "Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.",
     },
+  },
+  role: {
+    type: String,
+    enum: ["user", "doctor", "admin"],
+    default: "user",
   },
   resetPasswordCode: { type: String },
   resetPasswordExpires: { type: Date },

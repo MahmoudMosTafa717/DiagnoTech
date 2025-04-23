@@ -87,7 +87,7 @@ router.post("/login", async (req, res) => {
     if (!user || !(await bcrypt.compare(password, user.password))) {
       return res
         .status(400)
-        .json({ status: "fail", data: { error: "Invalid credentials" } });
+        .json({ status: "fail", data: { error: "Invalid email or password" } });
     }
 
     const expiresIn = rememberMe ? "7d" : "1h";

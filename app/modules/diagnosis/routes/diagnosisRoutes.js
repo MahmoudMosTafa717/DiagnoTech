@@ -3,7 +3,7 @@ const router = express.Router();
 const axios = require("axios");
 const User = require("../../user/models/userModel");
 const Diagnosis = require("../models/diagnosisModel");
-const Doctor = require("../models/doctorModel");
+const Doctor = require("../../user/models/doctorModel");
 
 const auth = require("../../../middlewares/authMiddleware");
 

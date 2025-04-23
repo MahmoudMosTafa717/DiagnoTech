@@ -117,7 +117,7 @@ router.post(
   }
 );
 
-// Delete password
+// Delete Account with password confirmation
 router.delete("/deleteAccount", auth, async (req, res) => {
   try {
     const { password } = req.body;
