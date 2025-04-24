@@ -494,7 +494,131 @@ router.delete(
 // -----------------------------
 
 // _____________________________________________________________________
-// Admin Settings
+// Admin Profile Settings
 // -----------------------------
+// Get User Profile
+router.get("/profilesettings/myinfo", authMiddleware, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    res.json({ status: "success", data: user });
+  } catch (err) {
+    res.status(500).json({ status: "error", message: err.message });
+  }
+});
+
+// Update User Profile
+router.put("/profilesettings/updateinfo", authMiddleware, async (req, res) => {
+  try {
+    const { fullName } = req.body;
+    await User.findByIdAndUpdate(req.user.id, { fullName });
+    res.json({ status: "success", data: { message: "Profile updated" } });
+  } catch (err) {
+    res.status(500).json({ status: "error", message: err.message });
+  }
+});
+
+// Change Password
+router.put(
+  "/profilesettings/changePassword",
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const { oldPassword, newPassword } = req.body;
+
+      // Ensure both old and new passwords are provided
+      if (!oldPassword || !newPassword) {
+        return res.status(400).json({
+          status: "fail",
+          data: { error: "Both old and new passwords are required" },
+        });
+      }
+
+      // Find user and check old password
+      const user = await User.findById(req.user.id);
+      if (!user) {
+        return res.status(404).json({
+          status: "fail",
+          data: { error: "User not found" },
+        });
+      }
+
+      if (!(await bcrypt.compare(oldPassword, user.password))) {
+        return res.status(400).json({
+          status: "fail",
+          data: { error: "Incorrect password" },
+        });
+      }
+
+      // Validate new password
+      const passwordRegex =
+        /^(?=.*\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@$!%*?&]).{8,}$/;
+      if (!passwordRegex.test(newPassword)) {
+        return res.status(400).json({
+          status: "fail",
+          data: {
+            error:
+              "Password must be at least 8 characters long and include at least one uppercase letter, one lowercase letter, one number, and one special character.",
+          },
+        });
+      }
+      // Hash and update new password
+      user.password = await bcrypt.hash(newPassword, 10);
+      await user.save();
+
+      res.json({
+        status: "success",
+        data: { message: "Password updated successfully" },
+      });
+    } catch (err) {
+      res.status(500).json({ status: "error", message: err.message });
+    }
+  }
+);
+
+// Delete Account with password confirmation
+router.delete(
+  "/profilesettings/deleteAccount",
+  authMiddleware,
+  async (req, res) => {
+    try {
+      const { password } = req.body;
+
+      if (!password) {
+        return res.status(400).json({
+          status: "fail",
+          data: { error: "Password is required to delete account" },
+        });
+      }
+
+      // Find user
+      const user = await User.findById(req.user.id);
+      if (!user) {
+        return res.status(404).json({
+          status: "fail",
+          data: { error: "User not found" },
+        });
+      }
+
+      // Check if the password is correct
+      const isMatch = await bcrypt.compare(password, user.password);
+      if (!isMatch) {
+        return res.status(400).json({
+          status: "fail",
+          data: { error: "Incorrect password" },
+        });
+      }
+
+      // Delete user account
+      await User.findByIdAndDelete(req.user.id);
+
+      res.json({
+        status: "success",
+        data: { message: "Account deleted successfully" },
+      });
+    } catch (err) {
+      res.status(500).json({ status: "error", message: err.message });
+    }
+  }
+);
 
 module.exports = router;
