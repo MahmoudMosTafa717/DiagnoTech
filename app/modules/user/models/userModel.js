@@ -25,6 +25,12 @@ const userSchema = new Schema({
       return this.role == "user";
     },
   },
+  contact: {
+    type: Number,
+    required: function () {
+      return this.role == "user";
+    },
+  },
   password: {
     type: String,
     required: true,
