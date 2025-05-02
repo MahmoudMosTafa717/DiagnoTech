@@ -3,6 +3,7 @@ const bcrypt = require("bcrypt");
 const multer = require("multer");
 const auth = require("../../../middlewares/authMiddleware");
 const User = require("../models/userModel");
+const Doctor = require("../models/doctorModel");
 const upload = require("../../../middlewares/multer");
 const router = express.Router();
 
@@ -13,6 +14,35 @@ router.get("/user", auth, async (req, res) => {
     res.json({ status: "success", data: user });
   } catch (err) {
     res.status(500).json({ status: "error", message: err.message });
+  }
+});
+
+router.get("/myappointments", auth, async (req, res) => {
+  try {
+    const doctors = await Doctor.find();
+
+    const myAppointments = [];
+
+    doctors.forEach((doctor) => {
+      doctor.appointments.forEach((appointment) => {
+        if (
+          appointment.userId &&
+          appointment.userId.toString() === req.user.id
+        ) {
+          myAppointments.push({
+            doctorId: doctor._id,
+            doctorName: doctor.fullName,
+            appointmentSlot: appointment.appointmentSlot,
+            appointmentDate: appointment.date,
+          });
+        }
+      });
+    });
+
+    res.status(200).json(myAppointments);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
   }
 });
 

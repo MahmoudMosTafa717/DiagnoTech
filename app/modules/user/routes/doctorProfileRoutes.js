@@ -6,6 +6,8 @@ const roleMiddleware = require("../../../middlewares/roleMiddleware");
 const Doctor = require("../models/doctorModel");
 const User = require("../models/userModel");
 const Review = require("../models/reviewModel");
+const bcrypt = require("bcrypt");
+
 // Helper function to parse and compare appointment slots
 const compareAppointmentSlots = (slotA, slotB) => {
   const dateA = new Date(slotA);
