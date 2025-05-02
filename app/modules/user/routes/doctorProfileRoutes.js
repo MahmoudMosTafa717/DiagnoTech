@@ -302,6 +302,8 @@ router.put(
 router.get("/reviews", auth, roleMiddleware("doctor"), async (req, res) => {
   try {
     const reviews = await Review.find({ doctorId: req.user.id });
+    console.log(req.user.id);
+
     res.json({ status: "success", data: reviews });
   } catch (err) {
     res.status(500).json({ error: err.message });

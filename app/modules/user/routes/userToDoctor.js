@@ -150,6 +150,8 @@ router.post("/reviews/add", auth, roleMiddleware("user"), async (req, res) => {
 router.get("/reviews/:doctorId", async (req, res) => {
   try {
     const reviews = await Review.find({ doctorId: req.params.doctorId });
+    console.log(req.params.doctorId);
+
     const averageRating = reviews.length
       ? (
           reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length

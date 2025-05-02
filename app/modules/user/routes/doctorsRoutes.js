@@ -2,6 +2,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const router = express.Router();
 const Doctor = require("../models/doctorModel");
+const User = require("../models/userModel");
 const Review = require("../models/reviewModel");
 
 // Get all doctors
