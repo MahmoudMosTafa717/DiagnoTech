@@ -15,21 +15,12 @@ const userSchema = new Schema({
   },
   gender: {
     type: String,
-    required: function () {
-      return this.role == "user";
-    },
   },
   age: {
     type: Number,
-    required: function () {
-      return this.role == "user";
-    },
   },
   contact: {
-    type: Number,
-    required: function () {
-      return this.role == "user";
-    },
+    type: String,
   },
   password: {
     type: String,

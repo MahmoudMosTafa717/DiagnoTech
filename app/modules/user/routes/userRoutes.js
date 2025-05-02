@@ -18,9 +18,9 @@ router.get("/", userController.getAllusers);
 
 router.post("/register", async (req, res) => {
   try {
-    const { fullName, email, gender, age, password } = req.body;
+    const { fullName, email, gender, age, password, contact } = req.body;
 
-    if (!fullName || !email || !gender || !age || !password) {
+    if (!fullName || !email || !gender || !age || !password || !contact) {
       return res.status(400).json({
         status: "fail",
         data: { error: "All fields are required" },
@@ -50,7 +50,14 @@ router.post("/register", async (req, res) => {
 
     // Hash password AFTER validation
     const hashedPassword = await bcrypt.hash(password, 10);
-    user = new User({ fullName, email, gender, age, password: hashedPassword });
+    user = new User({
+      fullName,
+      email,
+      gender,
+      age,
+      contact,
+      password: hashedPassword,
+    });
 
     await user.save();
 

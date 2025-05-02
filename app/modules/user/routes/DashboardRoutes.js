@@ -145,8 +145,8 @@ router.post(
         password,
         gender,
         age,
+        experience,
         specialty,
-        // experience,
         clinicAddress,
         contact,
         googleMapsLink,
@@ -161,7 +161,10 @@ router.post(
         !password ||
         !specialty ||
         !clinicAddress ||
-        !contact
+        !contact ||
+        !age ||
+        !gender ||
+        !experience
       ) {
         return res.status(400).json({
           status: "fail",
@@ -196,8 +199,9 @@ router.post(
         fullName,
         email,
         password: hashedPassword,
-        // gender,
-        // age,
+        gender,
+        age,
+        experience,
         role: "doctor",
       });
       await user.save();
@@ -207,6 +211,9 @@ router.post(
         userId: user._id,
         fullName,
         email,
+        gender,
+        age,
+        experience,
         specialty,
         clinicAddress,
         contact,
@@ -239,7 +246,7 @@ router.get(
   roleMiddleware("admin"),
   async (req, res) => {
     try {
-      const doctors = await Doctor.find();
+      const doctors = await Doctor.find().select("-Disease");
       res.json(doctors);
     } catch (error) {
       res
@@ -268,7 +275,7 @@ router.get(
       const search = query.toLowerCase();
 
       // Populate userId to access fullName and email
-      const doctors = await Doctor.find().populate("userId");
+      const doctors = await Doctor.find().populate("userId").select("-Disease");
 
       const filteredDoctors = doctors.filter((doc) => {
         const name = doc.userId?.fullName?.toLowerCase() || "";

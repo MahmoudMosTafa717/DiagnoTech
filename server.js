@@ -18,6 +18,9 @@ const diagnosisRoutes = require("./app/modules/diagnosis/routes/diagnosisRoutes"
 const doctorRoutes = require("./app/modules/user/routes/doctorsRoutes");
 const symptomsRoutes = require("./app/modules/diagnosis/routes/symptomsRoutes");
 const DashboardRoutes = require("./app/modules/user/routes/DashboardRoutes");
+const userbook = require("./app/modules/user/routes/userToDoctor");
+const doctorProfileRoutes = require("./app/modules/user/routes/doctorProfileRoutes");
+const chatbotRoutes = require("./app/modules/diagnosis/routes/chatbotRoutes");
 
 app.use("/api/users", userRouter);
 app.use("/api/profile", profileRoutes);
@@ -25,6 +28,9 @@ app.use("/api/diagnosis", diagnosisRoutes);
 app.use("/api/doctors", doctorRoutes);
 app.use("/api/symptoms", symptomsRoutes);
 app.use("/api/Dashboard", DashboardRoutes);
+app.use("/api/chatBot", chatbotRoutes);
+app.use("/api/doctorProfile", doctorProfileRoutes);
+app.use("/api/userbook", userbook);
 
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
