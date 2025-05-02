@@ -301,12 +301,21 @@ router.put(
 // Get user reviews for the doctor
 router.get("/reviews", auth, roleMiddleware("doctor"), async (req, res) => {
   try {
-    const reviews = await Review.find({ doctorId: req.user.id });
-    console.log(req.user.id);
+    // Find the doctor's profile using userId from UserModel
+    const doctor = await Doctor.findOne({ userId: req.user.id });
+    if (!doctor) {
+      return res.status(404).json({ error: "Doctor profile not found" });
+    }
+
+    // Find reviews using Doctor._id
+    const reviews = await Review.find({ doctorId: doctor._id }).populate(
+      "userId",
+      "fullName"
+    );
 
     res.json({ status: "success", data: reviews });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    res.status(500).json({ error: "Failed to fetch reviews" });
   }
 });
 

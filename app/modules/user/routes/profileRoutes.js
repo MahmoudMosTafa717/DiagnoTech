@@ -32,6 +32,7 @@ router.get("/myappointments", auth, async (req, res) => {
           myAppointments.push({
             doctorId: doctor._id,
             doctorName: doctor.fullName,
+            status: appointment.status,
             appointmentSlot: appointment.appointmentSlot,
             appointmentDate: appointment.date,
           });
