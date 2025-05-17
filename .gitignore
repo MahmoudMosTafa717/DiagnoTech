@@ -1,3 +1,4 @@
 node_modules/
 FlaskAPI/venv
 FlaskAPI/random_forest.joblib
+.env
