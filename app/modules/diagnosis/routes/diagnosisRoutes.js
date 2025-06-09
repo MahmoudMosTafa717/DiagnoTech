@@ -67,9 +67,11 @@ router.post("/prediction", auth, async (req, res) => {
 
   try {
     // Call Flask API for prediction
-    const response = await axios.post("http://127.0.0.1:4000/predict", {
-      symptoms,
-    });
+    const flaskApiUrl = process.env.FLASK_API_URL || "http://127.0.0.1:4000";
+    const response = await axios.post(`${flaskApiUrl}/predict`, { symptoms });
+    // const response = await axios.post("http://127.0.0.1:4000/predict", {
+    //   symptoms,
+    // });
     const topDiseases = response.data.top5_diseases;
 
     if (!topDiseases || topDiseases.length === 0) {
