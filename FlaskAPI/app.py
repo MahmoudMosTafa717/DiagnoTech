@@ -6,7 +6,11 @@ import numpy as np
 app = Flask(__name__)
 
 
-model = joblib.load(r"E:\EELU-it L4\#Graduation Project\DiagnoTech\FlaskAPI\random_forest.joblib")
+# Before
+# model = joblib.load(r"E:\EELU-it L4\#Graduation Project\DiagnoTech\FlaskAPI\random_forest.joblib")
+
+# After
+model = joblib.load("random_forest.joblib")
 
 
 df1 = pd.read_csv('Symptom-severity.csv')
