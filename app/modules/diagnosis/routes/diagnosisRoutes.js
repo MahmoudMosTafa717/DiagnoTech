@@ -70,7 +70,7 @@ router.post("/prediction", auth, async (req, res) => {
     const response = await axios.post("http://127.0.0.1:4000/predict", {
       symptoms,
     });
-    const topDiseases = response.data.top5_diseases; // Extract predictions
+    const topDiseases = response.data.top5_diseases;
 
     if (!topDiseases || topDiseases.length === 0) {
       return res
@@ -81,10 +81,9 @@ router.post("/prediction", auth, async (req, res) => {
     // Take only the first disease from the response
     const bestMatch = topDiseases[0];
 
-    // 🔹 Find doctors who treat this disease
     const matchingDoctors = await Doctor.find({ Disease: bestMatch.Disease });
 
-    // Store the diagnosis in MongoDB
+    // Store diagnosis in MongoDB
     const newDiagnosis = await Diagnosis.create({
       userId: req.user.id,
       symptoms,
@@ -96,7 +95,7 @@ router.post("/prediction", auth, async (req, res) => {
       },
     });
 
-    // Append diagnosis to user's medical history
+    // Store in medical history
     await User.findByIdAndUpdate(req.user.id, {
       $push: { medicalHistory: newDiagnosis._id },
     });
@@ -104,7 +103,7 @@ router.post("/prediction", auth, async (req, res) => {
     res.status(201).json({
       message: "Diagnosis saved successfully",
       diagnosis: newDiagnosis,
-      doctors: matchingDoctors, // 🔹 Include matching doctors in the response
+      doctors: matchingDoctors,
     });
   } catch (error) {
     console.error("Error calling Flask API:", error.message);
